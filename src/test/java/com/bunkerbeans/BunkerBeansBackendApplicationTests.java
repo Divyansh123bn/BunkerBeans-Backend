@@ -1,0 +1,13 @@
+package com.bunkerbeans;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class BunkerBeansBackendApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
