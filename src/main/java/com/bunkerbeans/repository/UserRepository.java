@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import com.bunkerbeans.entity.User;
 
 
-public interface UserRepository extends MongoRepository<User,String>{
+public interface UserRepository extends MongoRepository<User,Long>{
 
     public Optional<User> findByEmail(String email);
 }
