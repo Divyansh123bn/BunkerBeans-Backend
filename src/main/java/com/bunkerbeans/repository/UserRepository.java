@@ -4,10 +4,10 @@ import java.util.Optional;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 
-import com.bunkerbeans.entity.User;
+import com.bunkerbeans.entity.UserEntity;
 
 
-public interface UserRepository extends MongoRepository<User,Long>{
+public interface UserRepository extends MongoRepository<UserEntity,Long>{
 
-    public Optional<User> findByEmail(String email);
+    public Optional<UserEntity> findByEmail(String email);
 }

@@ -2,17 +2,20 @@ package com.bunkerbeans.service;
 
 import java.time.Instant;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.bunkerbeans.dto.LoginDTO;
 import com.bunkerbeans.dto.UserDTO;
-import com.bunkerbeans.entity.User;
+import com.bunkerbeans.entity.UserEntity;
 import com.bunkerbeans.exception.CustomException;
 import com.bunkerbeans.repository.UserRepository;
 import com.bunkerbeans.utility.Utilities;
+
 @Service("userService")
 public class UserServiceImpl implements UserService {
 
@@ -20,30 +23,102 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;    
 
     @Autowired
-    public PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EmailService emailService;
     
 
     @Override
     public UserDTO registerUser(UserDTO userDTO) throws CustomException {
-        Optional<User> optional=userRepository.findByEmail(userDTO.getEmail());
+        Optional<UserEntity> optional=userRepository.findByEmail(userDTO.getEmail());
         if(optional.isPresent()){
             throw new CustomException("USER_PRESENT");
         }
         userDTO.setId(Utilities.getNextSequence("users"));
         userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         userDTO.setCreatedAt(Instant.now());
-        User user=userDTO.toEntity();
+        userDTO.setIsAccountVerified(false);
+        userDTO.setResetOtpExpireAt(0L);
+        userDTO.setVerifyOtp(null);
+        userDTO.setVerifyOtpExpireAt(0L);
+        userDTO.setResetOtp(null);
+        UserEntity user=userDTO.toEntity();
         user=userRepository.save(user);
         return user.toDTO(); 
     }
 
-    @Override
-    public UserDTO loginUser(LoginDTO loginDTO) throws CustomException {
-        User user=userRepository.findByEmail(loginDTO.getEmail()).orElseThrow(()-> new CustomException("USER_NOT_FOUND"));
-        if(!passwordEncoder.matches(loginDTO.getPassword(),user.getPassword())){
-            throw new CustomException("INVALID_CREDENTIALS");
+     @Override
+    public void sendResetOtp(String email) {
+        UserEntity existingEntity=userRepository.findByEmail(email).orElseThrow(()-> new UsernameNotFoundException("User not found"+email));
+        // generate 6 digit otp
+        String otp=String .valueOf(ThreadLocalRandom.current().nextInt(100000,1000000));
+        // calculate expiry time of otp 15 mins in milliseconds
+        long expiryTime=System.currentTimeMillis()+(15*60*1000);
+        // update profile
+        existingEntity.setResetOtp(otp);
+        existingEntity.setResetOtpExpireAt(expiryTime);
+        userRepository.save(existingEntity);
+        try{
+            // send reset otp email:
+            emailService.sendResetOtpEmail(existingEntity.getEmail(), otp);
+
+        }catch(Exception ex){
+            throw new RuntimeException("Unable to send email");
         }
-        return user.toDTO();
+    }
+
+    @Override
+    public void setResetPassword(String email, String otp, String newPassword) {
+       UserEntity existingUser=userRepository.findByEmail(email).orElseThrow(()-> new UsernameNotFoundException("User not found with "+email));
+       if(existingUser.getResetOtp()==null || !existingUser.getResetOtp().equals(otp)){
+        throw new RuntimeException("Invalid OTP");
+       }
+       if(existingUser.getResetOtpExpireAt()<System.currentTimeMillis()){
+        throw new RuntimeException("OTP Expired");
+       }
+       existingUser.setPassword(passwordEncoder.encode(newPassword));
+       existingUser.setResetOtp(null);
+       existingUser.setResetOtpExpireAt(0L);
+
+       userRepository.save(existingUser);
+
+    }
+
+    @Override
+    public void sendOtp(String email) {
+        UserEntity existingUser=userRepository.findByEmail(email).orElseThrow(()-> new UsernameNotFoundException("User not present:"+email));
+        if(existingUser.getIsAccountVerified()!=null && existingUser.getIsAccountVerified()){
+            return;
+        }
+        // generate 6 digit otp
+        String otp=String .valueOf(ThreadLocalRandom.current().nextInt(100000,1000000));
+        // calculate expiry time of otp 24 hours in milliseconds
+        long expiryTime=System.currentTimeMillis()+(24*60*60*1000);
+        // update User Entity
+        existingUser.setVerifyOtp(otp);
+        existingUser.setVerifyOtpExpireAt(expiryTime);
+        userRepository.save(existingUser);
+        try{
+            emailService.sendOtpEmail(existingUser.getEmail(), otp);
+        }catch(Exception e){
+            throw new RuntimeException("Unable to send OTP.");
+        }
+    }
+
+    @Override
+    public void verifyOtp(String email, String otp) {
+        UserEntity existinguser=userRepository.findByEmail(email).orElseThrow(()-> new UsernameNotFoundException("USer not present"));
+        if(existinguser.getVerifyOtp()==null || !existinguser.getVerifyOtp().equals(otp)){
+            throw new RuntimeException("Invalid OTP");
+        }
+        if(existinguser.getVerifyOtpExpireAt()<System.currentTimeMillis()){
+            throw new RuntimeException("OTP Expired");
+        }
+        existinguser.setIsAccountVerified(true);
+        existinguser.setVerifyOtp(null);
+        existinguser.setVerifyOtpExpireAt(0L);
+        userRepository.save(existinguser);
     }
 
 }

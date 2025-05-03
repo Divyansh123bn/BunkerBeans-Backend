@@ -3,7 +3,7 @@ package com.bunkerbeans.dto;
 
 import java.time.Instant;
 
-import com.bunkerbeans.entity.User;
+import com.bunkerbeans.entity.UserEntity;
 import com.bunkerbeans.utility.AccountType;
 
 import jakarta.validation.constraints.Email;
@@ -35,7 +35,7 @@ public class UserDTO {
     private Instant createdAt;
     private Instant updatedAt;
 
-    public User toEntity(){
-        return new User(this.id, this.name, this.email, this.password, this.accountType,this.verifyOtp,this.isAccountVerified,this.verifyOtpExpireAt,this.resetOtp,this.resetOtpExpireAt,this.createdAt,this.updatedAt);
+    public UserEntity toEntity(){
+        return new UserEntity(this.id, this.name, this.email, this.password, this.accountType,this.verifyOtp,this.isAccountVerified,this.verifyOtpExpireAt,this.resetOtp,this.resetOtpExpireAt,this.createdAt,this.updatedAt);
     }
 }

@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Document(collection = "users")
 @AllArgsConstructor
 @NoArgsConstructor
-public class User {
+public class UserEntity {
     @Id
     private Long id;
     private String name;
