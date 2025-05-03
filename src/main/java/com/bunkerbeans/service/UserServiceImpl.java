@@ -1,5 +1,6 @@
 package com.bunkerbeans.service;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,10 +27,11 @@ public class UserServiceImpl implements UserService {
     public UserDTO registerUser(UserDTO userDTO) throws CustomException {
         Optional<User> optional=userRepository.findByEmail(userDTO.getEmail());
         if(optional.isPresent()){
-            throw new CustomException("USER_NOT_FOUND");
+            throw new CustomException("USER_PRESENT");
         }
         userDTO.setId(Utilities.getNextSequence("users"));
         userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        userDTO.setCreatedAt(Instant.now());
         User user=userDTO.toEntity();
         user=userRepository.save(user);
         return user.toDTO(); 
