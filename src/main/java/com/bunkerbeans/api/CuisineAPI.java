@@ -1,5 +1,7 @@
 package com.bunkerbeans.api;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +29,11 @@ public class CuisineAPI {
     @PostMapping("/add")
     public ResponseEntity<CuisineDTO> addCuisine(@RequestBody CuisineDTO cuisineDTO) throws CustomException{
         return new ResponseEntity<>(cuisineService.addCuisine(cuisineDTO),HttpStatus.CREATED);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<CuisineDTO>> getAllCuisine() throws CustomException{
+        return new ResponseEntity<>(cuisineService.getAllCuisines(),HttpStatus.OK);
     }
 
     @GetMapping("/get/{id}")

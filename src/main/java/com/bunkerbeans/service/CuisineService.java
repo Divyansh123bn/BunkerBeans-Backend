@@ -1,9 +1,13 @@
 package com.bunkerbeans.service;
 
+import java.util.List;
+
 import com.bunkerbeans.dto.CuisineDTO;
 import com.bunkerbeans.exception.CustomException;
 
 public interface CuisineService {
+
+    public List<CuisineDTO> getAllCuisines() throws CustomException;
 
     public CuisineDTO addCuisine(CuisineDTO cuisineDTO) throws CustomException;
 

@@ -10,9 +10,11 @@ public interface UserService {
 
     void sendResetOtp(String email);
 
-    void setResetPassword(String email,String otp,String newPassword);
+    void setResetPassword(String email,String newPassword);
 
     void sendOtp(String email);
     
     void verifyOtp(String email,String otp);
+
+    Boolean verifyResetOtp(String email,String otp);
 }

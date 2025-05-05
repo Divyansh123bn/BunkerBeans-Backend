@@ -68,19 +68,14 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @Override
-    public void setResetPassword(String email, String otp, String newPassword) {
-       UserEntity existingUser=userRepository.findByEmail(email).orElseThrow(()-> new UsernameNotFoundException("User not found with "+email));
-       if(existingUser.getResetOtp()==null || !existingUser.getResetOtp().equals(otp)){
-        throw new RuntimeException("Invalid OTP");
-       }
-       if(existingUser.getResetOtpExpireAt()<System.currentTimeMillis()){
-        throw new RuntimeException("OTP Expired");
-       }
-       existingUser.setPassword(passwordEncoder.encode(newPassword));
-       existingUser.setResetOtp(null);
-       existingUser.setResetOtpExpireAt(0L);
+    
 
+    @Override
+    public void setResetPassword(String email, String newPassword) {
+       UserEntity existingUser=userRepository.findByEmail(email).orElseThrow(()-> new UsernameNotFoundException("User not found with "+email));
+       existingUser.setPassword(passwordEncoder.encode(newPassword));
+       existingUser.setIsAccountVerified(true);
+       
        userRepository.save(existingUser);
 
     }
@@ -119,6 +114,21 @@ public class UserServiceImpl implements UserService {
         existinguser.setVerifyOtp(null);
         existinguser.setVerifyOtpExpireAt(0L);
         userRepository.save(existinguser);
+    }
+
+    @Override
+    public Boolean verifyResetOtp(String email, String otp) {
+        UserEntity existingUser=userRepository.findByEmail(email).orElseThrow(()-> new UsernameNotFoundException("User not found with "+email));
+        if(existingUser.getResetOtp()==null || !existingUser.getResetOtp().equals(otp)){
+         throw new RuntimeException("Invalid OTP");
+        }
+        if(existingUser.getResetOtpExpireAt()<System.currentTimeMillis()){
+         throw new RuntimeException("OTP Expired");
+        }
+        existingUser.setResetOtp(null);
+        existingUser.setResetOtpExpireAt(0L);
+        userRepository.save(existingUser);
+        return true;
     }
 
 }

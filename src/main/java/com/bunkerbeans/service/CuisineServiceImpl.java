@@ -1,6 +1,7 @@
 package com.bunkerbeans.service;
 
 import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +58,12 @@ public class CuisineServiceImpl implements CuisineService {
     public void removeCuisine(Long id) throws CustomException {
         Cuisine cuisine=cuisineRepository.findById(id).orElseThrow(()->new CustomException("CUISINE_NOT_FOUND"));
         cuisineRepository.delete(cuisine);
+    }
+
+    @Override
+    public List<CuisineDTO> getAllCuisines() throws CustomException {
+        List<Cuisine> cuisines=cuisineRepository.findAll();
+        return cuisines.stream().map(x->x.toDTO()).toList();
     }
 
     

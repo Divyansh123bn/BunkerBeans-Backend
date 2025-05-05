@@ -96,10 +96,15 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/verify-reset-otp")
+    public Boolean verifyResetOtp(@RequestParam String email,String otp){
+        return profileService.verifyResetOtp(email, otp);
+    }
+
     @PostMapping("/reset-password")
     public void resetPassword(@Valid @RequestBody ResetPasswordRequest request){
         try{
-            profileService.setResetPassword(request.getEmail(), request.getOtp(), request.getNewPassword());
+            profileService.setResetPassword(request.getEmail(),request.getNewPassword());
         }catch(Exception e){
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,e.getMessage());
         }
