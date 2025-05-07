@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Detail {
     private String category;
-    private List<String> feelType;
+    private List<String> taste;
 }
