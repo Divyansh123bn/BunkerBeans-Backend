@@ -36,4 +36,6 @@ public class UserAPI {
         emailService.sendWelcomeEmail(userDTO.getEmail(), userDTO.getName());
         return new ResponseEntity<>(userDTO,HttpStatus.CREATED);
     }
+
+    
 }
